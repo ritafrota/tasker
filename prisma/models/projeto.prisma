@@ -1,0 +1,18 @@
+model Projeto {
+  id        Int    @id @default(autoincrement())
+  nome      String @unique
+  descricao String
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  dataEstimada DateTime
+  concluido Boolean @default(false)
+
+
+  techLeadId Int
+  techlead   Usuario   @relation("TechLeadsProjetos", fields: [techLeadId], references: [id])
+  usuarios   Usuario[] @relation("UsuariosProjetos")
+
+  sprints   Sprint[]
+}

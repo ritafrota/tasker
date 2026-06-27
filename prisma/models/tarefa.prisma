@@ -1,0 +1,26 @@
+enum EstadoTarefa {
+  A_FAZER
+  FAZENDO
+  FEITO
+}
+
+model Tarefa {
+  id        Int    @id @default(autoincrement())
+  nome      String
+  descricao String
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  prioridade Int
+  
+  duracao Int
+
+  sprintId Int
+  sprint   Sprint @relation(fields: [sprintId], references: [id])
+
+  estado EstadoTarefa @default(A_FAZER)
+}

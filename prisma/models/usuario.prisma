@@ -1,0 +1,22 @@
+enum Cargo {
+  ADMIN
+  COLABORADOR
+}
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  email        String   @unique
+  senha        String
+  cargo        Cargo    @default(COLABORADOR)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  ativo Boolean @default(true)
+
+  tarefas Tarefa[]
+
+  projetosLiderados Projeto[] @relation("TechLeadsProjetos")
+
+  projetos Projeto[] @relation("UsuariosProjetos")
+}

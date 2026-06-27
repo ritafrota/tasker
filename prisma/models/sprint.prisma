@@ -1,0 +1,31 @@
+enum EstadoSprint {
+  pendente
+  finalizada
+}
+
+enum Prioriodade {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+model Sprint {
+  id        Int    @id @default(autoincrement())
+  nome      String
+
+  inicio DateTime
+  fim DateTime
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  prioridade Prioriodade
+
+  projetoId Int
+  projeto Projeto @relation(fields: [projetoId], references: [id])
+
+  estado EstadoSprint @default(pendente)
+
+  tarefas Tarefa[]
+}
