@@ -65,3 +65,79 @@ export async function criarProjeto(request, response) {
     return await retonarErroPrisma(error, response);
   }
 }
+
+export async function obterProjetos(request, response) {
+  try {
+      const usuario = request.usuario
+      
+      if (usuario.cargo === 'ADMIN'){
+        const projetos = await prisma.projeto.findMany()
+        
+        return response.status(200).json({
+          data: projetos
+        })
+      }
+
+      const projetos = await prisma.projeto.findMany({
+        where: {
+          usuarios: {some: {id: usuario.id}}
+        }
+      })
+    
+      return response.status(200).json({data: projetos})
+  } catch (error) {
+    return await retonarErroPrisma(error, response)
+  }
+}
+
+export async function obterDetalhesProjeto(request, response){
+  try {
+    const usuario = request.usuario
+    const projetoId = Number(request.params.id)
+    const projeto = await prisma.projeto.findFirst({
+      where: {
+        id: projetoId,
+        ...(usuario.cargo !== 'ADMIN' && {
+          usuarios: {some: {id: usuario.id}}
+        })
+
+      },
+      include: {
+        techlead: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            cargo: true
+          }
+        },
+        usuarios: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            cargo: true
+          }
+        },
+        sprints: {
+          select: {
+            id: true,
+            nome: true,
+            estado: true,
+            fim: true,
+            inicio: true,
+            
+          }
+        },
+      }
+    })
+    
+    if (!projeto) {
+      return response.status(404).json({message: "Projeto não encontrado."})
+    }
+
+    return response.status(200).json({data: projeto})
+  } catch (error) {
+    return await retonarErroPrisma(error, response)
+  }
+}

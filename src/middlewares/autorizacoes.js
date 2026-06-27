@@ -29,7 +29,11 @@ export async function autenticacaoMiddleware(request, response, next){
                 senha
             },
             select: {
-                id: true
+                id: true,
+                nome: true,
+                email: true,
+                cargo: true,
+
             }
         })
 
@@ -39,6 +43,8 @@ export async function autenticacaoMiddleware(request, response, next){
             })
         }
 
+        request.usuario = usuario
+
         return next()
     } catch (error) {
         return await retonarErroPrisma(error, response)
@@ -47,28 +53,16 @@ export async function autenticacaoMiddleware(request, response, next){
 
 export async function ehAdminMiddleware(request, response, next){
     try {
-        const autorizacao = request.headers.authorization
-        const [_, token] = autorizacao.split(" ")
-        const decodificado = Buffer.from(token, 'base64').toString('utf-8')
-        const [email] = decodificado.split(':') 
-
-        const {cargo} = await prisma.usuario.findUnique({
-            where: {
-                email
-            },
-            select: {
-                cargo: true
-            }
-        })
-
+        const {cargo} = request.usuario
+        
         if (cargo !== 'ADMIN'){
             return response.status(401).json({
-                message: "Esta rota é permitida apenas para ADMINS"
+                message: "Acesso negado."
             })
         }
         
         return next()
     } catch (error) {
-        
+        return await retonarErroPrisma(error, response)
     }    
 }

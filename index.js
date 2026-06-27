@@ -1,7 +1,7 @@
 import express from "express"
 import { cadastro, login } from "./src/controllers/autenticacao.js";
 import { obterAdmins, obterColaboradores, obterUsuarios } from "./src/controllers/usuarios.js";
-import { criarProjeto } from "./src/controllers/projetos.js";
+import { criarProjeto, obterDetalhesProjeto, obterProjetos } from "./src/controllers/projetos.js";
 import { criarSprint } from "./src/controllers/sprints.js";
 import { criarTarefa } from "./src/controllers/tarefas.js";
 import { autenticacaoMiddleware, ehAdminMiddleware } from "./src/middlewares/autorizacoes.js";
@@ -15,6 +15,8 @@ app.post("/login", login);
 app.post('/cadastro', autenticacaoMiddleware, ehAdminMiddleware, cadastro)
 
 // Projeto
+app.get('/', autenticacaoMiddleware, obterProjetos)
+app.get('/:id', autenticacaoMiddleware, obterDetalhesProjeto)
 app.post('/projeto', autenticacaoMiddleware, ehAdminMiddleware, criarProjeto)
 
 
