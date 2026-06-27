@@ -3,9 +3,9 @@ import { retonarErroPrisma } from "../services/errors.js";
 
 export async function criarSprint(request, response) {
     try {
-        const {nome, inicio, fim, prioridade, projetoId} = request.body
+        const {nome, inicio, fim, projetoId} = request.body
 
-        if (!nome || !prioridade || !projetoId) {
+        if (!nome || !projetoId) {
             return response.status(400).json({message: 'Preencha os campos.'})
         }
 
@@ -19,7 +19,6 @@ export async function criarSprint(request, response) {
         const sprint = await prisma.sprint.create({
             data: {
                 nome,
-                prioridade,
                 inicio: dataInicio,
                 fim: dataFim,
                 projeto: {
@@ -38,6 +37,6 @@ export async function criarSprint(request, response) {
         
         return response.status(200).json({message: 'Sprint criada com sucesso.', data: sprint})
     } catch (error) {
-        return retonarErroPrisma(error, response)
+        return await retonarErroPrisma(error, response)
     }
 }

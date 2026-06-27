@@ -2,21 +2,36 @@ import { prisma, Prisma } from "../lib/prisma.js";
 import { retonarErroPrisma } from "../services/errors.js";
 
 export async function login (request, response){
-    const loginCorreto = {
-        email: 'rita@fenfa.com',
-        senha: 'crispolindo123'
-    }
     const {email, senha} = request.body;
-    console.log(`${email}\n${senha}`);
 
-    if (email != loginCorreto.email || senha != loginCorreto.senha){
-        return response.json({logado: false, mensagem: 'Credenciais incorretas!'})
-    } else {
-        return response.json({logado:true, mensagem: 'Bem-vinda, Rita!'});
-
+    if (!email || !senha) {
+        return response.status(400).json({
+            message: "Preencha os campos."
+        })
     }
 
 
+    const usuario = await prisma.usuario.findUnique({
+        where: {
+            email,
+            senha,
+            ativo: true
+        },
+        select: {
+            id: true,
+            nome: true,
+            cargo: true,
+        }
+    })
+
+    if (!usuario) {
+        return response.status(401).json({message: "Credenciais inválidas."})
+    } 
+
+    return response.status(200).json({
+        message: `${usuario.nome} logado(a) com sucesso.`,
+        data: usuario
+    })
 }
 
 export async function cadastro(request, response){

@@ -4,6 +4,13 @@ enum EstadoTarefa {
   FEITO
 }
 
+enum Prioriodade {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
 model Tarefa {
   id        Int    @id @default(autoincrement())
   nome      String
@@ -12,10 +19,9 @@ model Tarefa {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
-  usuarioId Int
-  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuario   Usuario[]
 
-  prioridade Int
+  prioridade Prioriodade
   
   duracao Int
 

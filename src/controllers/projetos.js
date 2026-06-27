@@ -62,6 +62,6 @@ export async function criarProjeto(request, response) {
       data: projeto,
     });
   } catch (error) {
-    return retonarErroPrisma(error, response);
+    return await retonarErroPrisma(error, response);
   }
 }
