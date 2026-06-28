@@ -1,7 +1,7 @@
 import express from "express"
 import { cadastro, login } from "./src/controllers/autenticacao.js";
 import { obterAdmins, obterColaboradores, obterUsuarios } from "./src/controllers/usuarios.js";
-import { adicionarUsuarioProjeto, criarProjeto, obterDetalhesProjeto, obterProjetos, removerUsuarioProjeto } from "./src/controllers/projetos.js";
+import { adicionarUsuarioProjeto, criarProjeto, obterDetalhesProjeto, obterProjetos, removerUsuarioProjeto, trocarTechlead } from "./src/controllers/projetos.js";
 import { criarSprint } from "./src/controllers/sprints.js";
 import { criarTarefa } from "./src/controllers/tarefas.js";
 import { autenticacaoMiddleware, ehAdminMiddleware } from "./src/middlewares/autorizacoes.js";
@@ -21,6 +21,7 @@ app.get('/projeto/:id', autenticacaoMiddleware, obterDetalhesProjeto)
 app.patch('/projeto/:id/usuarios', autenticacaoMiddleware, ehAdminMiddleware, adicionarUsuarioProjeto)
 app.delete('/projeto/:id/usuarios', autenticacaoMiddleware, ehAdminMiddleware, removerUsuarioProjeto)
 
+app.patch('/projeto/:id/techlead', autenticacaoMiddleware, ehAdminMiddleware, trocarTechlead)
 
 
 // Sprint

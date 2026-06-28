@@ -94,6 +94,7 @@ export async function obterDetalhesProjeto(request, response){
   try {
     const usuario = request.usuario
     const projetoId = Number(request.params.id)
+    
     const projeto = await prisma.projeto.findFirst({
       where: {
         id: projetoId,
@@ -147,6 +148,9 @@ export async function adicionarUsuarioProjeto(request, response){
     const projetoId = Number(request.params.id)
     const {usuarioId} = request.body
     
+    if (!usuarioId) return response.status(400).json({message: "Preencha todos os campos."})
+
+
     const projeto = await prisma.projeto.update({
       where: {
         id: Number(projetoId)
@@ -183,6 +187,9 @@ export async function removerUsuarioProjeto(request, response){
     const projetoId = Number(request.params.id)
     const {usuarioId} = request.body
     
+    if (!usuarioId) return response.status(400).json({message: "Preencha todos os campos."})
+
+
     const projeto = await prisma.projeto.findUnique({
       where: {
         id: Number(projetoId)
@@ -227,5 +234,57 @@ export async function removerUsuarioProjeto(request, response){
   } catch (error) {
     return await retonarErroPrisma(error, response)
     
+  }
+}
+
+export async function trocarTechlead(request, response){
+  try {
+    const projetoId = Number(request.params.id)
+    const {novoTechleadId} = request.body
+
+    if (!novoTechleadId) return response.status(400).json({message: "Preencha todos os campos."})
+
+    const projeto = await prisma.projeto.findUnique({
+      where: {id: projetoId},
+      select: {
+        id: true,
+        usuarios: {select: {id: true}}
+      }
+    })
+
+    if (!projeto) return response.status(404).json({message: "Projeto não encontrado."})
+
+    const novoTechleadEstaNoProjeto = projeto.usuarios.some(usuario => usuario.id === Number(novoTechleadId))
+
+
+    if (!novoTechleadEstaNoProjeto) return response.status(400).json({
+      message: "Este usuário não está no projeto."
+    })
+
+    const dadosProjeto = await prisma.projeto.update({
+      where: {id: projetoId},
+      data: {
+        techlead: {connect: {id: Number(novoTechleadId)}}
+      },
+      select: {
+        id: true,
+        nome: true,
+        techlead: {
+          select: {id: true, nome: true}
+        },
+        usuarios: {
+          select: {id: true, nome: true}
+        }
+      }
+    })
+
+
+    return response.status(200).json({
+      message: "Techlead atualizado com sucesso.",
+      data: dadosProjeto
+    })
+  } catch (error) {
+    
+    return await retonarErroPrisma(error, response)
   }
 }
