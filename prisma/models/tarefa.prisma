@@ -19,7 +19,7 @@ model Tarefa {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
-  usuario   Usuario[]
+  usuarios Usuario[]
 
   prioridade Prioriodade
   
