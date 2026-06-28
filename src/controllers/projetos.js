@@ -141,3 +141,91 @@ export async function obterDetalhesProjeto(request, response){
     return await retonarErroPrisma(error, response)
   }
 }
+
+export async function adicionarUsuarioProjeto(request, response){
+  try {
+    const projetoId = Number(request.params.id)
+    const {usuarioId} = request.body
+    
+    const projeto = await prisma.projeto.update({
+      where: {
+        id: Number(projetoId)
+      },
+      data: {
+        usuarios: {connect: {id: Number(usuarioId)}}
+      },
+      select: {
+        id: true,
+        nome: true,
+        usuarios: {
+          select: {
+            id: true,
+            nome: true
+          }
+        }
+      }
+    })
+
+
+    return response.status(200).json({
+      message: 'Usuário adicionado com sucesso.',
+      data: projeto
+    })
+
+  } catch (error) {
+    return await retonarErroPrisma(error, response)
+    
+  }
+}
+
+export async function removerUsuarioProjeto(request, response){
+  try {
+    const projetoId = Number(request.params.id)
+    const {usuarioId} = request.body
+    
+    const projeto = await prisma.projeto.findUnique({
+      where: {
+        id: Number(projetoId)
+      },
+      select: {
+        techLeadId: true
+      }
+    })
+
+    if (!projeto) return response.status(404).json({message: "Projeto não encontrado."})
+
+    if (projeto.techLeadId === Number(usuarioId)) return response.status(400).json({
+      message: "O techlead não pode ser removido do projeto."
+    })
+    
+
+    const dadosProjeto = await prisma.projeto.update({
+      where: {
+        id: Number(projetoId)
+      },
+      data: {
+        usuarios: {disconnect: {id: Number(usuarioId)}}
+      },
+      select: {
+        id: true,
+        nome: true,
+        usuarios: {
+          select: {
+            id: true,
+            nome: true
+          }
+        }
+      }
+    })
+
+
+    return response.status(200).json({
+      message: 'Usuário removido com sucesso.',
+      data: dadosProjeto
+    })
+
+  } catch (error) {
+    return await retonarErroPrisma(error, response)
+    
+  }
+}
