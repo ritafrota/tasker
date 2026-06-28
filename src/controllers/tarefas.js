@@ -226,3 +226,56 @@ export async function alterarEstadoTarefa(request, response){
         
     }
 }
+
+export async function removerUsuarioTarefa(request, response){
+    try {
+        const usuario = request.usuario
+        const tarefaId = Number(request.params.id)
+        const {usuarioRemovidoId} = request.body
+
+        if (!usuarioRemovidoId) return response.status(400).json({message: "Preencha os campos."})
+
+
+        const tarefa = await prisma.tarefa.findUnique({
+            where: {id: tarefaId, usuarios: {some: {id: Number(usuarioRemovidoId)}}},
+            select: {
+                sprint: {
+                    select: {projeto: {select: {
+                        techLeadId: true,
+                    }}}
+                }
+            }
+        })
+
+        if (!tarefa) return response.status(404).json({message: "Tarefa não encontrada"})
+
+        
+        const {sprint: {projeto}} = tarefa
+
+        if(usuario.cargo !== "ADMIN" && usuario.id !== projeto.techLeadId) return response.status(401).json({
+            message: "Acesso negado."
+        })
+
+        
+        
+        const dadosTarefa = await prisma.tarefa.update({
+            where: {id: tarefaId},
+            data: {
+                usuarios: {disconnect: {id: Number(usuarioRemovidoId)}}
+            },
+            select: {
+                id: true,
+                nome: true,
+                usuarios: {
+                    select: {id: true, nome: true}
+                }
+            }
+        })
+
+
+        return response.status(200).json({message: "Usuário removido com sucesso.", data: dadosTarefa})
+    } catch (error) {
+        return await retonarErroPrisma(error, response)
+        
+    }
+}

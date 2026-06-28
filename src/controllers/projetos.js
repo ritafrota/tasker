@@ -33,6 +33,8 @@ export async function criarProjeto(request, response) {
       });
     }
 
+
+
     const projeto = await prisma.projeto.create({
       data: {
         nome,
@@ -182,58 +184,106 @@ export async function adicionarUsuarioProjeto(request, response){
   }
 }
 
-export async function removerUsuarioProjeto(request, response){
+export async function removerUsuarioProjeto(request, response) {
   try {
     const projetoId = Number(request.params.id)
-    const {usuarioId} = request.body
-    
-    if (!usuarioId) return response.status(400).json({message: "Preencha todos os campos."})
+    const { usuarioId } = request.body
 
+    if (!usuarioId) {
+      return response.status(400).json({
+        message: "Preencha todos os campos.",
+      })
+    }
+
+    if (isNaN(projetoId) || isNaN(Number(usuarioId))) {
+      return response.status(400).json({
+        message: "Ids inválidos.",
+      })
+    }
+
+    const usuarioIdNumber = Number(usuarioId)
 
     const projeto = await prisma.projeto.findUnique({
       where: {
-        id: Number(projetoId)
+        id: projetoId,
       },
       select: {
-        techLeadId: true
-      }
-    })
-
-    if (!projeto) return response.status(404).json({message: "Projeto não encontrado."})
-
-    if (projeto.techLeadId === Number(usuarioId)) return response.status(400).json({
-      message: "O techlead não pode ser removido do projeto."
-    })
-    
-
-    const dadosProjeto = await prisma.projeto.update({
-      where: {
-        id: Number(projetoId)
-      },
-      data: {
-        usuarios: {disconnect: {id: Number(usuarioId)}}
-      },
-      select: {
-        id: true,
-        nome: true,
+        techLeadId: true,
         usuarios: {
           select: {
             id: true,
-            nome: true
-          }
-        }
-      }
+          },
+        },
+      },
     })
 
+    if (!projeto) {
+      return response.status(404).json({
+        message: "Projeto não encontrado.",
+      })
+    }
+
+    if (projeto.techLeadId === usuarioIdNumber) {
+      return response.status(409).json({
+        message: "O techlead não pode ser removido do projeto.",
+      })
+    }
+
+    const usuarioEstaNoProjeto = projeto.usuarios.some(
+      (usuario) => usuario.id === usuarioIdNumber
+    )
+
+    if (!usuarioEstaNoProjeto) {
+      return response.status(404).json({
+        message: "Usuário não está vinculado a este projeto.",
+      })
+    }
+
+    const dadosProjeto = await prisma.$transaction(async (tx) => {
+      await tx.tarefa.updateMany({
+        where: {
+          usuarioId: usuarioIdNumber,
+          sprint: {
+            projetoId: projetoId,
+          },
+        },
+        data: {
+          usuarioId: null,
+        },
+      })
+
+      const projetoAtualizado = await tx.projeto.update({
+        where: {
+          id: projetoId,
+        },
+        data: {
+          usuarios: {
+            disconnect: {
+              id: usuarioIdNumber,
+            },
+          },
+        },
+        select: {
+          id: true,
+          nome: true,
+          usuarios: {
+            select: {
+              id: true,
+              nome: true,
+            },
+          },
+        },
+      })
+
+      return projetoAtualizado
+    })
 
     return response.status(200).json({
-      message: 'Usuário removido com sucesso.',
-      data: dadosProjeto
+      message: "Usuário removido com sucesso.",
+      data: dadosProjeto,
     })
-
   } catch (error) {
-    return await retonarErroPrisma(error, response)
-    
+    return retonarErroPrisma(error, response)
   }
 }
 

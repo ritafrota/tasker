@@ -3,7 +3,7 @@ import { cadastro, login } from "./src/controllers/autenticacao.js";
 import { obterAdmins, obterColaboradores, obterUsuarios } from "./src/controllers/usuarios.js";
 import { adicionarUsuarioProjeto, criarProjeto, obterDetalhesProjeto, obterProjetos, removerUsuarioProjeto, trocarTechlead } from "./src/controllers/projetos.js";
 import { concluirSprint, criarSprint, obterSprint } from "./src/controllers/sprints.js";
-import { alterarEstadoTarefa, atribuirUsuarioTarefa, criarTarefa, obterTarefa } from "./src/controllers/tarefas.js";
+import { alterarEstadoTarefa, atribuirUsuarioTarefa, criarTarefa, obterTarefa, removerUsuarioTarefa } from "./src/controllers/tarefas.js";
 import { autenticacaoMiddleware, ehAdminMiddleware } from "./src/middlewares/autorizacoes.js";
 
 const app = express();
@@ -33,6 +33,7 @@ app.patch('/sprint/:id/concluir', autenticacaoMiddleware, concluirSprint)
 app.post('/tarefa', autenticacaoMiddleware, criarTarefa)
 app.get('/tarefa/:id', autenticacaoMiddleware, obterTarefa)
 app.patch('/tarefa/:id/atribuir', autenticacaoMiddleware, atribuirUsuarioTarefa)
+app.delete('/tarefa/:id/remover', autenticacaoMiddleware, removerUsuarioTarefa)
 app.patch('/tarefa/:id/alterarestado', autenticacaoMiddleware, alterarEstadoTarefa)
 
 // Get Usuarios
