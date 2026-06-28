@@ -2,7 +2,7 @@ import express from "express"
 import { cadastro, login } from "./src/controllers/autenticacao.js";
 import { obterAdmins, obterColaboradores, obterUsuarios } from "./src/controllers/usuarios.js";
 import { adicionarUsuarioProjeto, criarProjeto, obterDetalhesProjeto, obterProjetos, removerUsuarioProjeto, trocarTechlead } from "./src/controllers/projetos.js";
-import { criarSprint } from "./src/controllers/sprints.js";
+import { concluirSprint, criarSprint, obterSprint } from "./src/controllers/sprints.js";
 import { criarTarefa } from "./src/controllers/tarefas.js";
 import { autenticacaoMiddleware, ehAdminMiddleware } from "./src/middlewares/autorizacoes.js";
 
@@ -26,6 +26,8 @@ app.patch('/projeto/:id/techlead', autenticacaoMiddleware, ehAdminMiddleware, tr
 
 // Sprint
 app.post('/sprint', autenticacaoMiddleware, ehAdminMiddleware, criarSprint)
+app.get('/sprint/:id', autenticacaoMiddleware, obterSprint)
+app.patch('/sprint/:id/concluir', autenticacaoMiddleware, concluirSprint)
 
 // Tarefa
 app.post('/tarefa', autenticacaoMiddleware, ehAdminMiddleware, criarTarefa)

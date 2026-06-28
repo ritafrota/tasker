@@ -40,3 +40,76 @@ export async function criarSprint(request, response) {
         return await retonarErroPrisma(error, response)
     }
 }
+
+export async function concluirSprint(request, response){
+    try {
+        const usuario = request.usuario
+        const sprintId = Number(request.params.id)
+
+        const sprint = await prisma.sprint.findUnique({
+            where: {id: sprintId},
+            select: {
+                id: true,
+                nome: true,
+                projeto: {
+                    select: {id: true, nome: true, techLeadId: true}
+                }
+            }
+        })
+
+        if (usuario.id !== sprint.projeto.techLeadId && usuario.cargo !== "ADMIN") return response.status(400).json({
+            message: "Acesso negado."
+        })
+
+        const dadosSprint = await prisma.sprint.update({
+            where: {id: sprintId},
+            data: {
+                estado: 'finalizada'
+            },
+
+        })
+
+
+        return response.status(200).json({
+            message: `Sprint ${dadosSprint.nome} concluída com sucesso.`,
+            data: dadosSprint
+        })
+    } catch (error) {
+        return await retonarErroPrisma(error, response)
+        
+    }
+}
+
+export async function obterSprint(request, response) {
+    try {
+        const usuario = request.usuario
+        const sprintId = Number(request.params.id)
+
+        const sprint = await prisma.sprint.findUnique({
+            where: {id: sprintId},
+            include: {
+                tarefas: {
+                    select: {id: true, nome: true, estado: true, duracao: true, criadoEm: true}
+                },
+                projeto: {
+                    select: {
+                        id: true, 
+                        nome: true,
+                        usuarios: {select: {id: true, nome: true}}
+                    },
+                }
+            }
+        })
+        const usuarioEstaNoProjeto = sprint.projeto.usuarios.some(u => u.id === usuario.id)
+
+        if(usuario.cargo !== "ADMIN" && !usuarioEstaNoProjeto) return response.status(404).json({
+            message: "Sprint não encontrada."
+        })
+
+
+        return response.status(200).json({data: sprint})
+    } catch (error) {
+        return await retonarErroPrisma(error, response)
+        
+    }
+}
